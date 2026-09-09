@@ -6,12 +6,15 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { Canton } from './cantones/canton.entity.js';
 import { CantonesModule } from './cantones/cantones.module.js';
+import { EstadisticaPolicial } from './judicial/estadistica-policial.entity.js';
+import { JudicialModule } from './judicial/judicial.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     CantonesModule,
+    JudicialModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -19,7 +22,7 @@ import { CantonesModule } from './cantones/cantones.module.js';
         type: 'postgres',
         url: config.getOrThrow<string>('DATABASE_URL'),
         ssl: { rejectUnauthorized: false },
-        entities: [Canton],
+        entities: [Canton, EstadisticaPolicial],
         autoLoadEntities: true,
         synchronize: process.env.NODE_ENV !== 'production',
       }),

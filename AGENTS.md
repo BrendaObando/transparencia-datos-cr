@@ -79,6 +79,9 @@ funcionalmente por una persona distinta.
 - Cada fuente tiene su(s) propia(s) tabla(s), más una tabla compartida
   `cantones` (código de provincia/cantón + nombre) que todas las demás tablas
   referencian por clave foránea. Esa tabla es la que permite el cruce.
+  **La tabla `cantones` ya está implementada** — se llena automáticamente con
+  83 cantones (82 oficiales + Río Cuarto) al arrancar el backend
+  (`backend/src/cantones/`). No hay que crearla ni llenarla manualmente.
 - **Privacidad — importante para el módulo de TSE:** el padrón electoral
   crudo contiene datos personales por elector (nombre, cédula). Nunca se
   almacenan filas a nivel de persona en nuestra base. El proceso de
@@ -108,19 +111,23 @@ cualquier agente sabe qué generar sin que se lo repitan:
 
 ## 6. Las cuatro fuentes
 
-### 6.1 Poder Judicial / OIJ — Estadísticas Policiales
+### 6.1 Poder Judicial / OIJ — Estadísticas Policiales ✅ COMPLETADO
 
-- **Responsable:** persona 1.
+- **Responsable:** Axel (@AxelCastilloZ).
+- **Estado:** implementado y funcionando. ~103,000 registros (2024–2026).
 - **Sin login ni token.** Descarga pública directa.
 - Portal oficial: `https://datosabiertospj.poder-judicial.go.cr/dataset/`
   (buscar "Estadísticas Policiales", formatos CSV/XLSX/XML).
-- Alternativa/respaldo con archivos anuales: sección "Datos Abiertos" en
-  `https://sitiooij.poder-judicial.go.cr` (XLS actualizado cada mes).
-- Formato: Excel/CSV. Parsear con el paquete npm `xlsx`.
-- Normalizar a: tipo de delito, fecha, provincia, cantón, distrito, y datos
-  de víctima si están disponibles.
-- Frecuencia de cron sugerida: diaria o semanal (la fuente se actualiza
-  mensualmente, no hace falta más).
+- CSVs reales descargados de:
+  `https://pjcrdatosabiertos.blob.core.windows.net/datosabiertos/PJCROD_POLICIALES_V1/PJCROD_POLICIALES_V1-{año}.csv`
+- Formato: CSV sin headers, 11 columnas (delito, subdelito, fecha,
+  tipoVictima, subTipoVictima, grupoEdad, sexo, nacionalidad, provincia,
+  cantón, distrito). Se parsea directamente con split, sin necesidad de `xlsx`.
+- Normalizado a: tipo de delito (delito + subdelito), fecha, provincia,
+  cantón (FK a tabla cantones), distrito, sexo/nacionalidad/edad de víctima.
+- Cron: semanal (`@Cron(CronExpression.EVERY_WEEK)`).
+- Endpoints: `/api/judicial/canton/:codigo`, `.../resumen`, `.../mensual`,
+  `/api/judicial/status`, `POST /api/judicial/sync`.
 
 ### 6.2 SICOP — Contratación Pública
 
@@ -192,11 +199,14 @@ cualquier agente sabe qué generar sin que se lo repitan:
 
 ## 9. Checklist del README final (lo que pide la rúbrica)
 
-- [ ] Explicación del problema y el tema elegido.
-- [ ] Lista de las 4 fuentes OSINT y qué integrante hizo cada una.
-- [ ] Diagrama o descripción de la arquitectura (backend/worker + API +
+- [x] Explicación del problema y el tema elegido.
+- [x] Lista de las 4 fuentes OSINT y qué integrante hizo cada una.
+- [x] Diagrama o descripción de la arquitectura (backend/worker + API +
       frontend).
-- [ ] Cómo correr el proyecto localmente (pnpm install, variables de entorno
+- [x] Cómo correr el proyecto localmente (pnpm install, variables de entorno
       necesarias, comandos de arranque).
-- [ ] Cómo consumir cada endpoint (ejemplos de request/response).
-- [ ] Confirmar que no hay tokens/credenciales reales subidas al repo.
+- [x] Cómo consumir cada endpoint (ejemplos de request/response).
+- [x] Confirmar que no hay tokens/credenciales reales subidas al repo.
+
+> **Nota:** el README ya cubre estos puntos para el módulo OIJ. Cada
+> integrante debe agregar sus endpoints y ejemplos cuando complete su módulo.
